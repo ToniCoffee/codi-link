@@ -1,14 +1,11 @@
-import * as monaco from 'monaco-editor';
-import { emmetHTML, emmetCSS /* , emmetJSX, expandAbbreviation */ } from 'emmet-monaco-es';
-import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-import JsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-
+import { registerEditor, createEditors, getEditorsValues } from './editor';
+import { utf8_to_b64, b64_to_utf8 } from './util/base64-util';
+import { $ } from './util/dom-util';
 import './style.css';
 
-const $ = selector => document.querySelector(selector);
+const { origin } = window.location;
 
-const $app = document.getElementById('app');
+const $app = $('#app');
 const $html = $('#html');
 const $js = $('#js');
 const $css = $('#css');
@@ -17,110 +14,33 @@ const $view = $('#view');
 $html.style.width = '50vw';
 $html.style.height = '50vh';
 
-window.MonacoEnvironment = {
-  getWorker: function (workerId, label) {
-    switch (label) {
-      case 'html':
-      case 'handlebars':
-      case 'razor':
-        return new HtmlWorker();
-      case 'typescript':
-      case 'javascript':
-        return new JsWorker();
-      case 'css':
-      case 'scss':
-      case 'less':
-        return new CssWorker();
-    }
-  }
-};
+// Jg== is the & symbol in base64
+let [initialHtml64, initialJs64, initialCss64] = window.location.search.slice(1).split('Jg==');
 
-const EDITOR_COMMON_OPTIONS = {
-  theme: 'vs-dark',
-  minimap: {
-    enabled: false
-  }
-  /* padding: {
-    top: 5,
-  }, */
-  // lineNumbersMinChars: 2
-};
+const initialHtml = b64_to_utf8(initialHtml64 || '') || '';
+const initialJs = b64_to_utf8(initialJs64 || '') || '';
+const initialCss = b64_to_utf8(initialCss64 || '') || '';
 
-const htmlEditor = monaco.editor.create($html, {
-  value: '',
-  language: 'html',
-  // tabCompletion: "on",
-  fixedOverflowWidgets: true,
-  scrollBeyondLastLine: false,
-  roundedSelection: false,
-  ...EDITOR_COMMON_OPTIONS
-  // glyphMargin: -100,
-  // automaticLayout: true
-  // autoClosingBrackets: true
-});
+registerEditor('html', $html, initialHtml);
+registerEditor('javascript', $js, initialJs);
+registerEditor('css', $css, initialCss);
+createEditors(() => $view.setAttribute('srcdoc', createHtml()));
 
-const jsEditor = monaco.editor.create($js, {
-  value: '',
-  language: 'javascript',
-  ...EDITOR_COMMON_OPTIONS
-  // automaticLayout: true
-});
-
-const cssEditor = monaco.editor.create($css, {
-  value: '',
-  language: 'css',
-  ...EDITOR_COMMON_OPTIONS
-  // automaticLayout: true
-});
-
-htmlEditor.onDidChangeModelContent(() => $view.setAttribute('srcdoc', createHtml()));
-jsEditor.onDidChangeModelContent(() => $view.setAttribute('srcdoc', createHtml()));
-cssEditor.onDidChangeModelContent(() => $view.setAttribute('srcdoc', createHtml()));
-
-// https://github.com/microsoft/monaco-editor/issues/221
-monaco.languages.registerCompletionItemProvider('html', {
-  triggerCharacters: ['>'],
-  provideCompletionItems: (model, position) => {
-    const codePre = model.getValueInRange({
-      startLineNumber: position.lineNumber,
-      startColumn: 1,
-      endLineNumber: position.lineNumber,
-      endColumn: position.column
-    });
-
-    const tag = codePre.match(/.*<(\w+)>$/)?.[1];
-
-    if (!tag) {
-      return {};
-    }
-
-    const word = model.getWordUntilPosition(position);
-
-    return {
-      suggestions: [
-        {
-          label: `</${tag}>`,
-          kind: monaco.languages.CompletionItemKind.EnumMember,
-          insertText: `</${tag}>`,
-          range: {
-            startLineNumber: position.lineNumber,
-            endLineNumber: position.lineNumber,
-            startColumn: word.startColumn,
-            endColumn: word.endColumn
-          }
-        }
-      ]
-    };
-  }
-});
-
-emmetHTML(monaco);
-emmetCSS(monaco);
+$view.setAttribute('srcdoc', createHtml());
 
 function createHtml () {
-  const htmlValue = htmlEditor.getValue() || '<h1>Welcome to Codi.link! - from value</h1>';
-  const jsValue = jsEditor.getValue();
-  const cssValue = cssEditor.getValue();
+  const [ htmlValue, jsValue, cssValue ] = getEditorsValues();
+
+  const htmlEncode64 = utf8_to_b64(htmlValue);
+  const jsEncode64 = utf8_to_b64(jsValue);
+  const cssEncode64 = utf8_to_b64(cssValue);
+
+  // Jg== is the & symbol encoded in base64
+  const resultEncode64 = !htmlEncode64.length && !jsEncode64.length && !cssEncode64.length
+    ? `${origin}`
+    : `${origin}?${htmlEncode64}Jg==${jsEncode64}Jg==${cssEncode64}`;
+
+  window.history.replaceState(null, null, resultEncode64);
 
   return `
   <!DOCTYPE html>
