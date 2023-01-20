@@ -44,9 +44,9 @@ body {
   overflow: hidden;
 }
 
-#html::after { background-image: url('/public/html.svg'); }
-#js::after { background-image: url('/public/js.svg'); }
-#css::after { background-image: url('/public/css.svg'); }
+#html::after { background-image: url('/html.svg'); }
+#js::after { background-image: url('/js.svg'); }
+#css::after { background-image: url('/css.svg'); }
 
 #view {
   border: none;
