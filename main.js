@@ -5,14 +5,35 @@ import './style.css';
 
 const { origin } = window.location;
 
-const $app = $('#app');
+// const $sideBar = $('#side-bar');
+const $sideBar = document.getElementById('side-bar');
+const $editor = $('#editor');
 const $html = $('#html');
 const $js = $('#js');
 const $css = $('#css');
 const $view = $('#view');
 
+// $html.style.width = `${parseInt(window.innerWidth) - $sideBar.offsetWidth - window.wid}px`;
+// $html.style.width = `${parseInt(document.body.clientWidth * 0.5)}px`;
 $html.style.width = '50vw';
+// $html.style.width = `${$html.offsetWidth - $sideBar.offsetWidth * 0.5}px`;
 $html.style.height = '50vh';
+
+document.addEventListener('click', e => {
+  if(e.target.hasAttribute('data-clickable')) {
+    switch(e.target.dataset.clickable) {
+      case 'file':
+        $sideBar.setAttribute('hidden', true);
+        break;
+    }
+  }
+});
+
+document.addEventListener('mousemove', e => {
+  if(e.x <= 2 && $sideBar.getAttribute('hidden') == 'true') {
+    $sideBar.removeAttribute('hidden');
+  }
+});
 
 // Jg== is the & symbol in base64
 let [initialHtml64, initialJs64, initialCss64] = window.location.search.slice(1).split('Jg==');
@@ -65,15 +86,18 @@ function createHtml () {
 
 const resizeObserver = new window.ResizeObserver(entries => {
   for (const entry of entries) {
-    /* $js.style.width = `${window.innerWidth - entry.target.offsetWidth}px`;
-    $css.style.width = `${entry.target.offsetWidth}px`;
-    $view.style.width = `${window.innerWidth - entry.target.offsetWidth}px`;
-    $js.style.height = `${entry.target.offsetHeight}px`;
-    $css.style.height = `${window.innerHeight - entry.target.offsetHeight}px`;
-    $view.style.height = `${window.innerHeight - entry.target.offsetHeight}px`; */
+    // $js.style.width = `${window.innerWidth - entry.target.offsetWidth}px`;
+    // $css.style.width = `${entry.target.offsetWidth}px`;
+    // $view.style.width = `${window.innerWidth - entry.target.offsetWidth}px`;
+    // $js.style.height = `${entry.target.offsetHeight}px`;
+    // $css.style.height = `${window.innerHeight - entry.target.offsetHeight}px`;
+    // $view.style.height = `${window.innerHeight - entry.target.offsetHeight}px`;
 
-    $app.style.gridTemplateColumns = `${entry.target.offsetWidth}px ${window.innerWidth - entry.target.offsetWidth}px`;
-    $app.style.gridTemplateRows = `${entry.target.offsetHeight}px 1fr`;
+    // $editor.style.gridTemplateColumns = `${entry.target.offsetWidth}px ${window.innerWidth - entry.target.offsetWidth}px`;
+    // $editor.style.gridTemplateColumns = `${entry.target.offsetWidth - $sideBar.offsetWidth}px ${window.innerWidth - entry.target.offsetWidth}px`;
+    // $editor.style.gridTemplateColumns = `${entry.target.offsetWidth - $sideBar.offsetWidth * 0.5}px 1fr`;
+    $editor.style.gridTemplateColumns = `${entry.target.offsetWidth}px 1fr`;
+    $editor.style.gridTemplateRows = `${entry.target.offsetHeight}px 1fr`;
   }
 });
 
