@@ -7,12 +7,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
-  "eslintConfig":{
-    "extends": ["./node_modules/semistandard/eslintrc.json"]
+  "eslintConfig": {
+    "extends": [
+      "./node_modules/semistandard/eslintrc.json"
+    ]
   },
   "devDependencies": {
+    "gh-pages": "^5.0.0",
     "semistandard": "^16.0.1",
     "vite": "4.0.0"
   },
